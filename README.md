@@ -94,7 +94,7 @@ def get_indice(model, prompts, sprompts, device="cuda"):
 
 # Word swapping & Adding new phrase
 ![alt text](./sources/cat_tiger.png)
-![alt text](./sources/cake_deco.png)
+![alt text](./sources/cake_deco2.png)
 
 Run the shell script, ./swap.sh written as below:
 ```
