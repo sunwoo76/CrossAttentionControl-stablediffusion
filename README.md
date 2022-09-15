@@ -119,7 +119,7 @@ The reweighting function is implemented, but it can't be controlled by argument.
 
 Therefore, you should changed the weight for the specific token index as below:
 ```
-The code is located on the line245 and 252 in "./ldm/modules/attenion.py"
+The code is located on the line249 and 257 in "./ldm/modules/attenion.py"
 
 def forward(self, x, context=None, scontext=None, pmask=None, time=None, mask=None):
     """
@@ -144,6 +144,12 @@ def forward(self, x, context=None, scontext=None, pmask=None, time=None, mask=No
 
             """ cross attention control: only reweighting is possible. """
             """ The swap and adding new phrase do not work because, the source prompt does not exist in this case. """
+            """
+            ex) A photo of a house on a snowy mountain
+            : for controlling "snowy":
+            the token index=8.
+            the weights for sample1~3 are -2, 1, 5 in this example.
+            """
             attn = self.cross_attention_control(tattmap=attn, t=time, token_idx=[2], weights=[[-2., 1., 5.]] )
         else:
             x, sx = x.chunk(2)
@@ -155,6 +161,23 @@ def forward(self, x, context=None, scontext=None, pmask=None, time=None, mask=No
             attn = self.cross_attention_control(tattmap=attn, sattmap=sattn, pmask=pmask, t=time, token_idx=[0], weights=[[1., 1., 1.]] )
 ```
 
+We can compare the results with different weight through this scripts:
+(If you use "fixed_code", all the samples are generated with same fixed latent vectors. For better comparison, I recommend you to utilize this argument.)
+```
+# ./swap.sh
+python ./scripts/swap.py\
+    --prompt "A photo of a house on a snowy mountain"\
+    --n_samples 3\
+    --strength 0.99\
+    --fixed_code\
+    #--sprompt "photo of a cat riding on a bicycle"\
+    #--is-swap\
+    #--fixed_code\
+    # --save_attn_dir "/root/media/data1/sdm/attenmaps_apples_swap_orig/"\
+    # --is_get_attn\
+
+chmod -R 777 ./
+```
 # Visualize Cross Attention Map
 Please note that visualization code 
 
