@@ -7,7 +7,12 @@ The repository reproduced the cross attention control algorithm in "Prompt-to-Pr
 # Reference
 [Prompt-to-Prompt Image Editing with Cross Attention Control](https://arxiv.org/abs/2208.01626)  
 [Compvis/stablediffusion](https://github.com/CompVis/stable-diffusion)  
-[Unofficial implementation of cross attention control](https://github.com/bloc97/CrossAttentionControl)  
+[Unofficial implementation of cross attention control](https://github.com/bloc97/CrossAttentionControl)
+
+# To do.
+* Implementation of controlling reweighting function through argument.
+* Any resolution inference: The code is now operated in only the resolution 512x512. Some parts are hard-coded the resolution of images.
+* Modifying the code of visualization attention map: any nuber of sample images.
 
 # Setting envirnoment
 Please refer to [compvis/stablediffusion](https://github.com/CompVis/stable-diffusion) for set environment.
@@ -267,11 +272,4 @@ Parameters in ./visualize_all.sh:
 | `attenmap=""` | the path that the attention maps are saved in. It is same with "save_attn_dir" |
 | `sample_name=""` | the name of samples that were generated, which were saved in ./outputs/swap-images | `"a_cake_with_jelly_beans_decorations"` |
 | `token_idx=0` | the token index that we want to visualize. |
-
-
-# To do.
-* Implementation of controlling reweighting function through argument.
-* Any resolution inference: The code is now operated in only the resolution 512x512. Some parts are hard-coded the resolution of images.
-* Modifying the code of visualization attention map: any nuber of sample images.
-
 
