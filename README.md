@@ -4,6 +4,11 @@ Unofficial implementation of "Prompt-to-Prompt Image Editing with Cross Attentio
 
 The repository reproduced the cross attention control algorithm in "Prompt-to-Prompt Image Editing with Cross Attention Control". The code is based on the official [stable diffusion repository](https://github.com/CompVis/stable-diffusion)
 
+# Reference
+[Prompt-to-Prompt Image Editing with Cross Attention Control](https://arxiv.org/abs/2208.01626)  
+[Compvis/stablediffusion](https://github.com/CompVis/stable-diffusion)  
+[Unofficial implementation of cross attention control](https://github.com/bloc97/CrossAttentionControl)  
+
 # Setting envirnoment
 Please refer to [compvis/stablediffusion](https://github.com/CompVis/stable-diffusion) for set environment.
 The repository is based on compvis/stablediffusion repository.
@@ -185,6 +190,8 @@ python ./scripts/swap.py\
 chmod -R 777 ./
 ```
 # Visualize Cross Attention Map
+![alt text](./sources/attention.png)
+
 Please note that visualization code 
 
 We follow the visualization cross-attention map as described in the Prompt-to-Prompt:
@@ -264,11 +271,7 @@ Parameters in ./visualize_all.sh:
 
 # To do.
 * Implementation of controlling reweighting function through argument.
-* Any resolution inference: The code is now operated in only the resolution 512x512. Some parts are hard-coded the resolution of images. 
-
-# Reference
-[Prompt-to-Prompt Image Editing with Cross Attention Control](https://arxiv.org/abs/2208.01626)  
-[Compvis/stablediffusion](https://github.com/CompVis/stable-diffusion)  
-[Unofficial implementation of cross attention control](https://github.com/bloc97/CrossAttentionControl)  
+* Any resolution inference: The code is now operated in only the resolution 512x512. Some parts are hard-coded the resolution of images.
+* Modifying the code of visualization attention map: any nuber of sample images.
 
 
