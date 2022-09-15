@@ -1,130 +1,128 @@
-# Stable Diffusion
-*Stable Diffusion was made possible thanks to a collaboration with [Stability AI](https://stability.ai/) and [Runway](https://runwayml.com/) and builds upon our previous work:*
+# CrossAttentionControl-stablediffusion
+Unofficial implementation of "Prompt-to-Prompt Image Editing with Cross Attention Control" with Stable Diffusion, the code is based on the offical StableDiffusion repository.
 
-[**High-Resolution Image Synthesis with Latent Diffusion Models**](https://arxiv.org/abs/2112.10752)<br/>
-[Robin Rombach](https://github.com/rromb)\*,
-[Andreas Blattmann](https://github.com/ablattmann)\*,
-[Dominik Lorenz](https://github.com/qp-qp)\,
-[Patrick Esser](https://github.com/pesser),
-[Björn Ommer](https://hci.iwr.uni-heidelberg.de/Staff/bommer)<br/>
 
-which is available on [GitHub](https://github.com/CompVis/latent-diffusion).
+The repository reproduced the cross attention control algorithm in "Prompt-to-Prompt Image Editing with Cross Attention Control". The code is based on the official [stable diffusion repository](https://github.com/CompVis/stable-diffusion)
 
-![txt2img-stable2](assets/stable-samples/txt2img/merged-0006.png)
-[Stable Diffusion](#stable-diffusion-v1) is a latent text-to-image diffusion
-model.
-Thanks to a generous compute donation from [Stability AI](https://stability.ai/) and support from [LAION](https://laion.ai/), we were able to train a Latent Diffusion Model on 512x512 images from a subset of the [LAION-5B](https://laion.ai/blog/laion-5b/) database. 
-Similar to Google's [Imagen](https://arxiv.org/abs/2205.11487), 
-this model uses a frozen CLIP ViT-L/14 text encoder to condition the model on text prompts.
-With its 860M UNet and 123M text encoder, the model is relatively lightweight and runs on a GPU with at least 10GB VRAM.
-See [this section](#stable-diffusion-v1) below and the [model card](https://huggingface.co/CompVis/stable-diffusion).
+# Setting envirnoment
+Please refer to [compvis/stablediffusion](https://github.com/CompVis/stable-diffusion) for set environment.
+The repository is based on compvis/stablediffusion repository.
 
-  
-## Requirements
-A suitable [conda](https://conda.io/) environment named `ldm` can be created
-and activated with:
-
+If you clone this repository run the commend as below:
 ```
 conda env create -f environment.yaml
-conda activate ldm
+conda activate sdmp2p
 ```
 
-You can also update an existing [latent diffusion](https://github.com/CompVis/latent-diffusion) environment by running
-
+Set the checkpoints to the path:
 ```
-conda install pytorch torchvision -c pytorch
-pip install transformers==4.19.2
-pip install -e .
-``` 
-
-
-## Stable Diffusion v1
-
-Stable Diffusion v1 refers to a specific configuration of the model
-architecture that uses a downsampling-factor 8 autoencoder with an 860M UNet
-and CLIP ViT-L/14 text encoder for the diffusion model. The model was pretrained on 256x256 images and 
-then finetuned on 512x512 images.
-
-*Note: Stable Diffusion v1 is a general text-to-image diffusion model and therefore mirrors biases and (mis-)conceptions that are present
-in its training data. 
-Details on the training procedure and data, as well as the intended use of the model can be found in the corresponding [model card](https://huggingface.co/CompVis/stable-diffusion).
-Research into the safe deployment of general text-to-image models is an ongoing effort. To prevent misuse and harm, we currently provide access to the checkpoints only for [academic research purposes upon request](https://stability.ai/academia-access-form).
-**This is an experiment in safe and community-driven publication of a capable and general text-to-image model. We are working on a public release with a more permissive license that also incorporates ethical considerations.***
-
-[Request access to Stable Diffusion v1 checkpoints for academic research](https://stability.ai/academia-access-form) 
-
-### Weights
-
-We currently provide three checkpoints, `sd-v1-1.ckpt`, `sd-v1-2.ckpt` and `sd-v1-3.ckpt`,
-which were trained as follows,
-
-- `sd-v1-1.ckpt`: 237k steps at resolution `256x256` on [laion2B-en](https://huggingface.co/datasets/laion/laion2B-en).
-  194k steps at resolution `512x512` on [laion-high-resolution](https://huggingface.co/datasets/laion/laion-high-resolution) (170M examples from LAION-5B with resolution `>= 1024x1024`).
-- `sd-v1-2.ckpt`: Resumed from `sd-v1-1.ckpt`.
-  515k steps at resolution `512x512` on "laion-improved-aesthetics" (a subset of laion2B-en,
-filtered to images with an original size `>= 512x512`, estimated aesthetics score `> 5.0`, and an estimated watermark probability `< 0.5`. The watermark estimate is from the LAION-5B metadata, the aesthetics score is estimated using an [improved aesthetics estimator](https://github.com/christophschuhmann/improved-aesthetic-predictor)).
-- `sd-v1-3.ckpt`: Resumed from `sd-v1-2.ckpt`. 195k steps at resolution `512x512` on "laion-improved-aesthetics" and 10\% dropping of the text-conditioning to improve [classifier-free guidance sampling](https://arxiv.org/abs/2207.12598).
-
-Evaluations with different classifier-free guidance scales (1.5, 2.0, 3.0, 4.0,
-5.0, 6.0, 7.0, 8.0) and 50 PLMS sampling
-steps show the relative improvements of the checkpoints:
-![sd evaluation results](assets/v1-variants-scores.jpg)
-
-
-
-### Text-to-Image with Stable Diffusion
-![txt2img-stable2](assets/stable-samples/txt2img/merged-0005.png)
-![txt2img-stable2](assets/stable-samples/txt2img/merged-0007.png)
-
-Stable Diffusion is a latent diffusion model conditioned on the (non-pooled) text embeddings of a CLIP ViT-L/14 text encoder.
-
-After [obtaining the weights](#weights), link them
+./ldm/stable-diffusion-v1/sd-v1-3-full-ema.ckpt
 ```
-mkdir -p models/ldm/stable-diffusion-v1/
-ln -s <path/to/model.ckpt> models/ldm/stable-diffusion-v1/model.ckpt 
-```
-and sample with
-```
-python scripts/txt2img.py --prompt "a photograph of an astronaut riding a horse" --plms 
-```
-By default, this uses a guidance scale of `--scale 7.5`, [Katherine Crowson's implementation](https://github.com/CompVis/latent-diffusion/pull/51) of the [PLMS](https://arxiv.org/abs/2202.09778) sampler, 
-and renders images of size 512x512 (which it was trained on) in 50 steps. All supported arguments are listed below (type `python scripts/txt2img.py --help`).
 
-```commandline
-usage: txt2img.py [-h] [--prompt [PROMPT]] [--outdir [OUTDIR]] [--skip_grid] [--skip_save] [--ddim_steps DDIM_STEPS] [--plms] [--laion400m] [--fixed_code] [--ddim_eta DDIM_ETA] [--n_iter N_ITER] [--H H] [--W W] [--C C] [--f F] [--n_samples N_SAMPLES] [--n_rows N_ROWS]
-                  [--scale SCALE] [--from-file FROM_FILE] [--config CONFIG] [--ckpt CKPT] [--seed SEED] [--precision {full,autocast}]
+# Cross Attention Control
+The word swapping, adding new phrase and reweighting function is implemented as below:
+```
+# located in "./ldm/modules/attention.py"
+def cross_attention_control(self, tattmap, sattmap=None, pmask=None, t=0, tthres=0, token_idx=[0], weights=[[1. , 1. , 1.]]):
+    attn = tattmap
+    sattn = sattmap
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --prompt [PROMPT]     the prompt to render
-  --outdir [OUTDIR]     dir to write results to
-  --skip_grid           do not save a grid, only individual samples. Helpful when evaluating lots of samples
-  --skip_save           do not save individual samples. For speed measurements.
-  --ddim_steps DDIM_STEPS
-                        number of ddim sampling steps
-  --plms                use plms sampling
-  --laion400m           uses the LAION400M model
-  --fixed_code          if enabled, uses the same starting code across samples
-  --ddim_eta DDIM_ETA   ddim eta (eta=0.0 corresponds to deterministic sampling
-  --n_iter N_ITER       sample this often
-  --H H                 image height, in pixel space
-  --W W                 image width, in pixel space
-  --C C                 latent channels
-  --f F                 downsampling factor
-  --n_samples N_SAMPLES
-                        how many samples to produce for each given prompt. A.k.a. batch size
-  --n_rows N_ROWS       rows in the grid (default: n_samples)
-  --scale SCALE         unconditional guidance scale: eps = eps(x, empty) + scale * (eps(x, cond) - eps(x, empty))
-  --from-file FROM_FILE
-                        if specified, load prompts from this file
-  --config CONFIG       path to config which constructs model
-  --ckpt CKPT           path to checkpoint of model
-  --seed SEED           the seed (for reproducible sampling)
-  --precision {full,autocast}
-                        evaluate at this precision
+    h = 8
+    bh, n, d = attn.shape
 
-<<<<<<< HEAD
-=======
+    if t>=tthres:
+        """ 1. swap & ading new phrase """
+        if sattmap is not None:
+            bh, n, d = attn.shape
+            pmask, sindices, indices = pmask
+            pmask = pmask.view(1,1,-1).repeat(bh, n, 1)
+            attn = (1-pmask)*attn[:,:,indices] + (pmask)*sattn[:,:,sindices]
+
+        """ 2. reweighting """
+        attn = rearrange(attn,'(b h) n d -> b h n d', h=h) # (6,8,4096,77) -> (img1(uc), img2(uc), img1(c), img1(c), img2(c), img3(c))
+        num_iter = bh//(h*2) #: 3
+        for k in range(len(token_idx)):
+            for i in range(num_iter):
+                attn[num_iter+i, :, :, token_idx[k]] *= weights[k][i]
+        attn = rearrange(attn,'b h n d -> (b h) n d', h=h) # (6,8,4096,77)
+
+    return attn
+```
+
+The mask and indice are from the function in "./swap.py":
+```
+def get_indice(model, prompts, sprompts, device="cuda"):
+    """ from cross attention control(https://github.com/bloc97/CrossAttentionControl) """
+    # input_ids: 49406, 1125, 539, 320, 2368, 6765, 525, 320, 11652, 49407]
+    tokenizer = model.cond_stage_model.tokenizer
+    tokens_length = tokenizer.model_max_length
+
+    tokens = tokenizer(prompts[0], padding="max_length", max_length=tokenizer.model_max_length, truncation=True, return_tensors="pt", return_overflowing_tokens=True)
+    stokens= tokenizer(sprompts[0], padding="max_length", max_length=tokenizer.model_max_length, truncation=True, return_tensors="pt", return_overflowing_tokens=True)
+    
+    p_ids = tokens.input_ids.numpy()[0]
+    sp_ids = stokens.input_ids.numpy()[0]
+
+
+    mask = torch.zeros(tokens_length)
+    indices_target = torch.arange(tokens_length, dtype=torch.long)
+    indices = torch.zeros(tokens_length, dtype=torch.long)
+    
+    for name, a0, a1, b0, b1 in SequenceMatcher(None, sp_ids, p_ids).get_opcodes():
+        if b0 < tokens_length:
+            if name == "equal" or (name == "replace" and a1-a0 == b1-b0):
+                mask[b0:b1] = 1
+                indices[b0:b1] = indices_target[a0:a1]
+    
+    mask = mask.to(device)
+    indices = indices.to(device)
+    indices_target = indices_target.to(device) 
+
+    return [mask, indices, indices_target]
+```
+
+# Word swapping & Adding new phrase
+![alt text](./sources/cat_tiger.png)
+![alt text](./sources/cake_deco.png)
+
+Run the shell script, ./swap.sh written as below:
+```
+python ./scripts/swap.py\
+    --prompt "a cake with jelly beans decorations"\
+    --n_samples 3\
+    --strength 0.99\
+    --sprompt "a cake with decorations"\
+    --is-swap\
+    #--fixed_code\
+    # --save_attn_dir "/root/media/data1/sdm/attenmaps_apples_swap_orig/"\
+    # --is_get_attn\
+
+chmod -R 777 ./
+```
+
+If you want to get reulsts with only target prompt, annotate the arguments "is-swap" and "--sprompt". The final shell script is written as below:
+```
+python ./scripts/swap.py\
+    --prompt "a cake with jelly beans decorations"\
+    --n_samples 3\
+    --strength 0.99\
+    #--sprompt "a cake with decorations"\
+    #--is-swap\
+    #--fixed_code\
+    # --save_attn_dir "/root/media/data1/sdm/attenmaps_apples_swap_orig/"\
+    # --is_get_attn\
+
+chmod -R 777 ./
+```
+
+The results are save in "./outputs/swap-samples"
+
+# Reweighting
+![alt text](./sources/snowy_mountain.png)
+(left to right, weights are -2, 1, 2, 3, 4, 5)  
+
+The reweighting function is implemented, but it can't be controlled by argument. The weight contorll through argument is not yet implemented.
+
 Therefore, you should changed the weight for the specific token index as below:
 ```
 The code is located on the line249 and 257 in "./ldm/modules/attenion.py"
@@ -167,15 +165,8 @@ def forward(self, x, context=None, scontext=None, pmask=None, time=None, mask=No
             """ cross attention control """
             bh, hw, tleng = attn.shape
             attn = self.cross_attention_control(tattmap=attn, sattmap=sattn, pmask=pmask, t=time, token_idx=[0], weights=[[1., 1., 1.]] )
->>>>>>> 1b102dbfe3f298493dceaa7b71b7514aafacad82
 ```
-Note: The inference config for all v1 versions is designed to be used with EMA-only checkpoints. 
-For this reason `use_ema=False` is set in the configuration, otherwise the code will try to switch from
-non-EMA to EMA weights. If you want to examine the effect of EMA vs no EMA, we provide "full" checkpoints
-which contain both types of weights. For these, `use_ema=False` will load and use the non-EMA weights.
 
-<<<<<<< HEAD
-=======
 We can compare the results with different weight through this scripts:
 (If you use "fixed_code", all the samples are generated with same fixed latent vectors. For better comparison, I recommend you to utilize this argument.)
 ```
@@ -195,54 +186,89 @@ chmod -R 777 ./
 ```
 # Visualize Cross Attention Map
 Please note that visualization code 
->>>>>>> 1b102dbfe3f298493dceaa7b71b7514aafacad82
 
-### Image Modification with Stable Diffusion
-
-By using a diffusion-denoising mechanism as first proposed by [SDEdit](https://arxiv.org/abs/2108.01073), the model can be used for different 
-tasks such as text-guided image-to-image translation and upscaling. Similar to the txt2img sampling script, 
-we provide a script to perform image modification with Stable Diffusion.  
-
-The following describes an example where a rough sketch made in [Pinta](https://www.pinta-project.com/) is converted into a detailed artwork.
+We follow the visualization cross-attention map as described in the Prompt-to-Prompt:
 ```
-python scripts/img2img.py --prompt "A fantasy landscape, trending on artstation" --init-img <path-to-img.jpg> --strength 0.8
+def avg_attmap(self, attmap, token_idx=0):
+    """
+    num_sample(=batch_size) = 3
+    uc,c = 2 #(unconditional, condiitonal)
+    -> 3*2=6
+
+    attmap.shape: similarity matrix.
+    token_idx: index of token for visualizing, 77: [SOS, ...text..., EOS]
+    """
+    nsample2, head, hw, context_dim = attmap.shape
+
+    #import pdb; pdb.set_trace()
+    attmap_sm = F.softmax(attmap.float(), dim=-1)#F.softmax(torch.Tensor(attmap).float(), dim=-1) # (6, 8, hw, context_dim)
+    att_map_sm = attmap_sm[nsample2//2:, :, :, :] # (3, 8, hw, context_dim)
+    att_map_mean = torch.mean(att_map_sm, dim=1) # (3, hw, context_dim)
+
+    b, hw, context_dim = att_map_mean.shape
+    h = int(math.sqrt(hw))
+    w = h
+
+    return att_map_mean.view(b,h,w,context_dim)  # (3, h, w, context_dim)
 ```
-Here, strength is a value between 0.0 and 1.0, that controls the amount of noise that is added to the input image. 
-Values that approach 1.0 allow for lots of variations but will also produce images that are not semantically consistent with the input. See the following example.
 
-**Input**
-
-![sketch-in](assets/stable-samples/img2img/sketch-mountains-input.jpg)
-
-**Outputs**
-
-![out3](assets/stable-samples/img2img/mountains-3.png)
-![out2](assets/stable-samples/img2img/mountains-2.png)
-
-This procedure can, for example, also be used to upscale samples from the base model.
-
-
-## Comments 
-
-- Our codebase for the diffusion models builds heavily on [OpenAI's ADM codebase](https://github.com/openai/guided-diffusion)
-and [https://github.com/lucidrains/denoising-diffusion-pytorch](https://github.com/lucidrains/denoising-diffusion-pytorch). 
-Thanks for open-sourcing!
-
-- The implementation of the transformer encoder is from [x-transformers](https://github.com/lucidrains/x-transformers) by [lucidrains](https://github.com/lucidrains?tab=repositories). 
-
-
-## BibTeX
-
+For getting visualized cross-attention map, please run the shell script:
 ```
-@misc{rombach2021highresolution,
-      title={High-Resolution Image Synthesis with Latent Diffusion Models}, 
-      author={Robin Rombach and Andreas Blattmann and Dominik Lorenz and Patrick Esser and Björn Ommer},
-      year={2021},
-      eprint={2112.10752},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
-}
+# ./visualize_all.sh
+attenmap="/root/media/data1/sdm/attenmaps_apples_swap_orig"
+sample_name="A_basket_full_of_apples_tar"
+token_idx=5
 
+for a in 1,1,0  0,0,1 0,0,2 0,0,3  2,2,1 2,2,2 2,2,3  0,2,1 0,2,2 0,2,3
+do
+        IFS=',' read item1 item2 item3 <<< "${a}"
+
+        python visualize_attmap.py\
+            --root ${attenmap}\
+            --save_dir ./atten_${sample_name}_${token_idx}/\
+            --slevel ${item1}\
+            --elevel ${item2}\
+            --stime 0\
+            --etime 49\
+            --res ${item3}\
+            --token_idx ${token_idx}\
+            --img_path ./outputs/swap-samples/${sample_name}.png
+done
+
+python visualize_comp.py\
+    --root ./atten_${sample_name}_${token_idx}\
+    --token_idx ${token_idx}
+
+chmod -R 777 ./
 ```
+
+# Usage
+Parameters in ./swap.sh:
+| Name = Default Value | Description | Example |
+|---|---|---|
+| `prompt=""` | the target prompt as a string | `"a cake with jelly beans decorations"` |
+| `sprompt=""` | the source prompt as a string | `"a cake with decorations"` |
+| `is-swap=store_true` | if you word swap or adding new phrase with source prompt |
+| `n_samples=3` | number of samples to generate, the default values is 3 now. |
+| `is_get_attn=store_true` | store cross-attention map or not |
+| `save_attn_dir=""` | the path that the cross-attention map will be saved in. |
+
+
+Parameters in ./visualize_all.sh:
+| Name = Default Value | Description | Example |
+|---|---|---|
+| `attenmap=""` | the path that the attention maps are saved in. It is same with "save_attn_dir" |
+| `sample_name=""` | the name of samples that were generated, which were saved in ./outputs/swap-images | `"a_cake_with_jelly_beans_decorations"` |
+| `token_idx=0` | the token index that we want to visualize. |
+
+
+# To do.
+* Implementation of controlling reweighting function through argument.
+* Any resolution inference: The code is now operated in only the resolution 512x512. Some parts are hard-coded the resolution of images. 
+
+# Reference
+[Prompt-to-Prompt Image Editing with Cross Attention Control](https://arxiv.org/abs/2208.01626)  
+[Compvis/stablediffusion](https://github.com/CompVis/stable-diffusion)  
+[Unofficial implementation of cross attention control](https://github.com/bloc97/CrossAttentionControl)  
 
 
