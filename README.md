@@ -1,8 +1,9 @@
 # CrossAttentionControl-stablediffusion
 Unofficial implementation of "Prompt-to-Prompt Image Editing with Cross Attention Control" with Stable Diffusion, the code is based on the offical StableDiffusion repository.
 
-
 The repository reproduced the cross attention control algorithm in "Prompt-to-Prompt Image Editing with Cross Attention Control". The code is based on the official [stable diffusion repository](https://github.com/CompVis/stable-diffusion)
+
+**Please check and leave many issues and comments !**
 
 # Reference
 [Prompt-to-Prompt Image Editing with Cross Attention Control](https://arxiv.org/abs/2208.01626)  
