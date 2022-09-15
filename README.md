@@ -123,12 +123,79 @@ optional arguments:
   --precision {full,autocast}
                         evaluate at this precision
 
+<<<<<<< HEAD
+=======
+Therefore, you should changed the weight for the specific token index as below:
+```
+The code is located on the line249 and 257 in "./ldm/modules/attenion.py"
+
+def forward(self, x, context=None, scontext=None, pmask=None, time=None, mask=None):
+    """
+    x.shape: (6,4096,320)
+    context.shape(6,77,768)
+    q, k, v shape: (6, hw, 320), (6, 77, 320), (6, 77, 320)
+    -> q,k,v shape: (32, hw, 40=320/8=self.head), (32, 77, 40=320/8=self.head), (32, 77, 40=320/8=self.head)
+
+    - visualization.
+    1. aggregate all attention map across the "timesteps" and "heads"
+    2. Normalization divided by "max" with respecto to "each token"
+    """
+
+    h = self.heads
+    if scontext == "selfattn":
+        sim, attn, v = self.get_attmap(x=x, h=self.heads, context=context, mask=None)
+        sattn = None
+    else:
+        if scontext is None:
+            sim, attn, v = self.get_attmap(x=x, h=self.heads, context=context, mask=None)
+            sattn = None
+
+            """ cross attention control: only reweighting is possible. """
+            """ The swap and adding new phrase do not work because, the source prompt does not exist in this case. """
+            """
+            ex) A photo of a house on a snowy mountain
+            : for controlling "snowy":
+            the token index=8.
+            the weights for sample1~3 are -2, 1, 5 in this example.
+            """
+            attn = self.cross_attention_control(tattmap=attn, t=time, token_idx=[2], weights=[[-2., 1., 5.]] )
+        else:
+            x, sx = x.chunk(2)
+            sim, attn, v = self.get_attmap(x=x, h=self.heads, context=context, mask=None)
+            ssim, sattn, sv = self.get_attmap(x=sx, h=self.heads, context=scontext, mask=None)
+
+            """ cross attention control """
+            bh, hw, tleng = attn.shape
+            attn = self.cross_attention_control(tattmap=attn, sattmap=sattn, pmask=pmask, t=time, token_idx=[0], weights=[[1., 1., 1.]] )
+>>>>>>> 1b102dbfe3f298493dceaa7b71b7514aafacad82
 ```
 Note: The inference config for all v1 versions is designed to be used with EMA-only checkpoints. 
 For this reason `use_ema=False` is set in the configuration, otherwise the code will try to switch from
 non-EMA to EMA weights. If you want to examine the effect of EMA vs no EMA, we provide "full" checkpoints
 which contain both types of weights. For these, `use_ema=False` will load and use the non-EMA weights.
 
+<<<<<<< HEAD
+=======
+We can compare the results with different weight through this scripts:
+(If you use "fixed_code", all the samples are generated with same fixed latent vectors. For better comparison, I recommend you to utilize this argument.)
+```
+# ./swap.sh
+python ./scripts/swap.py\
+    --prompt "A photo of a house on a snowy mountain"\
+    --n_samples 3\
+    --strength 0.99\
+    --fixed_code\
+    #--sprompt "photo of a cat riding on a bicycle"\
+    #--is-swap\
+    #--fixed_code\
+    # --save_attn_dir "/root/media/data1/sdm/attenmaps_apples_swap_orig/"\
+    # --is_get_attn\
+
+chmod -R 777 ./
+```
+# Visualize Cross Attention Map
+Please note that visualization code 
+>>>>>>> 1b102dbfe3f298493dceaa7b71b7514aafacad82
 
 ### Image Modification with Stable Diffusion
 
