@@ -176,6 +176,9 @@ def avg_attmap(self, attmap, token_idx=0):
     return att_map_mean.view(b,h,w,context_dim)  # (3, h, w, context_dim)
 ```
 
+# To do.
+* Implementation of controlling reweighting function through argument.
+* Any resolution inference: The code is now operated in only the resolution 512x512. Some parts are hard-coded the resolution of images. 
 
 # Reference
 [Prompt-to-Prompt Image Editing with Cross Attention Control](https://arxiv.org/abs/2208.01626)  
