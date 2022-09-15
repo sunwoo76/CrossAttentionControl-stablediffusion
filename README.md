@@ -14,6 +14,11 @@ conda env create -f environment.yaml
 conda activate p2p
 ```
 
+Set the checkpoints to the path:
+```
+./ldm/stable-diffusion-v1/sd-v1-3-full-ema.ckpt
+```
+
 # Cross Attention Control
 The word swapping, adding new phrase and reweighting function is implemented as below:
 ```
@@ -151,6 +156,8 @@ def forward(self, x, context=None, scontext=None, pmask=None, time=None, mask=No
 ```
 
 # Visualize Cross Attention Map
+Please note that visualization code 
+
 We follow the visualization cross-attention map as described in the Prompt-to-Prompt:
 ```
 def avg_attmap(self, attmap, token_idx=0):
@@ -175,6 +182,56 @@ def avg_attmap(self, attmap, token_idx=0):
 
     return att_map_mean.view(b,h,w,context_dim)  # (3, h, w, context_dim)
 ```
+
+For getting visualized cross-attention map, please run the shell script:
+```
+# ./visualize_all.sh
+attenmap="/root/media/data1/sdm/attenmaps_apples_swap_orig"
+sample_name="A_basket_full_of_apples_tar"
+token_idx=5
+
+for a in 1,1,0  0,0,1 0,0,2 0,0,3  2,2,1 2,2,2 2,2,3  0,2,1 0,2,2 0,2,3
+do
+        IFS=',' read item1 item2 item3 <<< "${a}"
+
+        python visualize_attmap.py\
+            --root ${attenmap}\
+            --save_dir ./atten_${sample_name}_${token_idx}/\
+            --slevel ${item1}\
+            --elevel ${item2}\
+            --stime 0\
+            --etime 49\
+            --res ${item3}\
+            --token_idx ${token_idx}\
+            --img_path ./outputs/swap-samples/${sample_name}.png
+done
+
+python visualize_comp.py\
+    --root ./atten_${sample_name}_${token_idx}\
+    --token_idx ${token_idx}
+
+chmod -R 777 ./
+```
+
+# Usage
+Parameters in ./swap.sh:
+| Name = Default Value | Description | Example |
+|---|---|---|
+| `prompt=""` | the target prompt as a string | `"a cake with jelly beans decorations"` |
+| `sprompt=""` | the source prompt as a string | `"a cake with decorations"` |
+| `is-swap=store_true` | if you word swap or adding new phrase with source prompt |
+| `n_samples=3` | number of samples to generate, the default values is 3 now. |
+| `is_get_attn=store_true` | store cross-attention map or not |
+| `save_attn_dir=""` | the path that the cross-attention map will be saved in. |
+
+
+Parameters in ./visualize_all.sh:
+| Name = Default Value | Description | Example |
+|---|---|---|
+| `attenmap=""` | the path that the attention maps are saved in. It is same with "save_attn_dir" |
+| `sample_name=""` | the name of samples that were generated, which were saved in ./outputs/swap-images | `"a_cake_with_jelly_beans_decorations"` |
+| `token_idx=0` | the token index that we want to visualize. |
+
 
 # To do.
 * Implementation of controlling reweighting function through argument.
