@@ -118,7 +118,7 @@ chmod -R 777 ./
 The results are save in "./outputs/swap-samples"
 
 # Reweighting
-![alt text](./sources/snowy_mountain.png)
+![alt text](./sources/snowy_mountain2.png)
 (left to right, weights are -2, 1, 2, 3, 4, 5)  
 
 The reweighting function is implemented, but it can't be controlled by argument. The weight contorll through argument is not yet implemented.
